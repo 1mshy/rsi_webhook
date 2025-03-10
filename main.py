@@ -13,11 +13,13 @@ POLYGON_API_KEY: str = os.getenv("POLYGON_API_KEY")
 DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL")
 USE_TIMER: bool = os.getenv("USE_TIMER") != "False"
 LOOP: bool = os.getenv("LOOP") != "False"
+SHOW_LOW_RSI: str = os.getenv("SHOW_LOW_RSI") != "False"
+SHOW_HIGH_RSI: str = os.getenv("SHOW_HIGH_RSI") != "False"
 # DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1347713815273406514/Ur4ZD1C-NX9OWlYYn0Gec7Hmq-5tT9uaA4FrJPd_VlNk08ClTsakp7fhoreeUKmnO2Hs"
 
 # Define RSI limits
-RSI_OVERBOUGHT = 70  # Upper limit
-RSI_OVERSOLD = 30    # Lower limit
+RSI_OVERBOUGHT = int(os.getenv("RSI_OVERBOUGHT"))  # Upper limit
+RSI_OVERSOLD = int(os.getenv("RSI_OVERSOLD"))    # Lower limit
 
 # List of stock tickers to check
 STOCK_TICKERS = []
@@ -30,7 +32,7 @@ async def get_latest_rsi(session, ticker):
         f"&order=desc&limit=1&apiKey={POLYGON_API_KEY}"
     )
     
-    print(f"Fetching RSI for {ticker}: {url}")
+    # print(f"Fetching RSI for {ticker}: {url}")
     try:
         async with session.get(url) as response:
             if response.status == 200:
@@ -136,12 +138,12 @@ async def check_rsi_and_alert(stock_tickers=STOCK_TICKERS):
             if rsi is None or timestamp is None:
                 continue
             
-            if rsi > RSI_OVERBOUGHT:
+            if SHOW_HIGH_RSI and rsi > RSI_OVERBOUGHT:
                 perspectives.append((ticker, rsi, "Overbought", timestamp))
-            elif rsi < RSI_OVERSOLD:
+            elif SHOW_LOW_RSI and rsi < RSI_OVERSOLD:
                 perspectives.append((ticker, rsi, "Oversold", timestamp))
             else:
-                print(f"{ticker}: RSI {rsi:.2f} is within normal range")
+                print(f"Skipping {ticker}: RSI {rsi:.2f} is within normal range set")
     
     # Send all perspectives in one webhook
     await send_discord_webhook(perspectives)
