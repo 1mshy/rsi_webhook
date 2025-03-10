@@ -12,6 +12,7 @@ dotenv.load_dotenv()
 POLYGON_API_KEY: str = os.getenv("POLYGON_API_KEY")
 DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL")
 USE_TIMER: bool = os.getenv("USE_TIMER") != "False"
+LOOP: bool = os.getenv("LOOP") != "False"
 # DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1347713815273406514/Ur4ZD1C-NX9OWlYYn0Gec7Hmq-5tT9uaA4FrJPd_VlNk08ClTsakp7fhoreeUKmnO2Hs"
 
 # Define RSI limits
@@ -160,11 +161,13 @@ async def run():
 
 # Run the script
 async def main():
-    # Uncomment the next line to use NASDAQ tickers
-    if USE_TIMER:
-        await run_daily_at_946am(run)
-    else:
-        await run()
+    ran_once = False
+    while not ran_once or LOOP:
+        if USE_TIMER:
+            await run_daily_at_946am(run)
+        else:
+            await run()
+        ran_once = True
 
 
 if __name__ == "__main__":
